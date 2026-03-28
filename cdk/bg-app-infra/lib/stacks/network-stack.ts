@@ -27,5 +27,16 @@ export class NetworkStack extends cdk.Stack {
         },
       ],
     });
+
+    if (cfg.envName === "shared") {
+      const tgw = new ec2.CfnTransitGateway(this, "TGW", {
+        defaultRouteTableAssociation: "enable",
+        defaultRouteTablePropagation: "enable",
+      });
+
+      new cdk.CfnOutput(this, "TGWId", {
+        value: tgw.ref,
+      });
+    }
   }
 }
