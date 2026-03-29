@@ -16,18 +16,23 @@ export interface EnvConfig {
 
   rdsStorageSize: number;
   vpcCidr: string;
+  tgwConfig?: { destinationVPCidr: string; targetVPCcidr: string };
 }
 export const ENV_CONFIG: Record<AppEnv, EnvConfig> = {
   shared: {
     envName: "shared",
-    orgId: "",
-    orgAccountId: "",
+    orgId: "o-yr7s22wlau",
+    orgAccountId: "448658736684",
     account: "084847996201",
     region: "ap-southeast-2",
     profile: "bg-shared",
     rdsStorageSize: 0,
 
     vpcCidr: vpcCidrConfig.shared,
+    tgwConfig: {
+      destinationVPCidr: vpcCidrConfig.dev,
+      targetVPCcidr: vpcCidrConfig.shared,
+    },
   },
   dev: {
     envName: "dev",
