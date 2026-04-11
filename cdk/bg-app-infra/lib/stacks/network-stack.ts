@@ -43,17 +43,43 @@ export class NetworkStack extends cdk.Stack {
       ec2.Port.tcp(443),
       "HTTPS from Shared VPC",
     );
-    vpc.addInterfaceEndpoint("SsmEndpoint", {
-      service: ec2.InterfaceVpcEndpointAwsService.SSM,
-      securityGroups: [endpointSg],
+    // Private AWS service access for workloads in isolated subnets.
+    [
+      {
+        id: "SsmEndpoint",
+        service: ec2.InterfaceVpcEndpointAwsService.SSM,
+      },
+      {
+        id: "SsmMessagesEndpoint",
+        service: ec2.InterfaceVpcEndpointAwsService.SSM_MESSAGES,
+      },
+      {
+        id: "Ec2MessagesEndpoint",
+        service: ec2.InterfaceVpcEndpointAwsService.EC2_MESSAGES,
+      },
+      {
+        id: "CloudWatchLogsEndpoint",
+        service: ec2.InterfaceVpcEndpointAwsService.CLOUDWATCH_LOGS,
+      },
+      {
+        id: "KmsEndpoint",
+        service: ec2.InterfaceVpcEndpointAwsService.KMS,
+      },
+      {
+        id: "SecretsManagerEndpoint",
+        service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
+      },
+    ].forEach(({ id, service }) => {
+      vpc.addInterfaceEndpoint(id, {
+        service,
+        securityGroups: [endpointSg],
+      });
     });
-    vpc.addInterfaceEndpoint("SsmMessagesEndpoint", {
-      service: ec2.InterfaceVpcEndpointAwsService.SSM_MESSAGES,
-      securityGroups: [endpointSg],
+    vpc.addGatewayEndpoint("S3Endpoint", {
+      service: ec2.GatewayVpcEndpointAwsService.S3,
     });
-    vpc.addInterfaceEndpoint("Ec2MessagesEndpoint", {
-      service: ec2.InterfaceVpcEndpointAwsService.EC2_MESSAGES,
-      securityGroups: [endpointSg],
+    vpc.addGatewayEndpoint("DynamoDbEndpoint", {
+      service: ec2.GatewayVpcEndpointAwsService.DYNAMODB,
     });
 
     // ── EC2 (SSM test client) ─────────────────────────────────────────────────
