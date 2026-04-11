@@ -31,6 +31,16 @@ export class NetworkStack extends cdk.Stack {
     });
 
     const vpc = this.vpc;
+    const sharedVpcCidr = props.cfg.tgwConfig?.destinationVPCidr ?? "";
+    const sharedTgwId =
+      (this.node.tryGetContext("sharedTgwId") as string | undefined) ??
+      cfg.tgwConfig?.transitGatewayId;
+
+    if (cfg.envName === "dev" && !sharedTgwId) {
+      throw new Error(
+        'The dev environment requires a shared TGW ID. Pass it with "-c sharedTgwId=<tgw-id>" or set cfg.tgwConfig.transitGatewayId.',
+      );
+    }
 
     // ── SSM Interface Endpoints (no NAT/IGW required) ─────────────────────────
     const endpointSg = new ec2.SecurityGroup(this, "EndpointSg", {
@@ -82,31 +92,85 @@ export class NetworkStack extends cdk.Stack {
       service: ec2.GatewayVpcEndpointAwsService.DYNAMODB,
     });
 
-    // ── EC2 (SSM test client) ─────────────────────────────────────────────────
-    const ec2Role = new iam.Role(this, "Ec2Role", {
-      assumedBy: new iam.ServicePrincipal("ec2.amazonaws.com"),
-      managedPolicies: [
-        iam.ManagedPolicy.fromAwsManagedPolicyName(
-          "AmazonSSMManagedInstanceCore",
+    const createTestInstance = (
+      idPrefix: string,
+      ingressPeer?: ec2.IPeer,
+      listenerPort?: number,
+    ): ec2.Instance => {
+      const ec2Role = new iam.Role(this, `${idPrefix}Ec2Role`, {
+        assumedBy: new iam.ServicePrincipal("ec2.amazonaws.com"),
+        managedPolicies: [
+          iam.ManagedPolicy.fromAwsManagedPolicyName(
+            "AmazonSSMManagedInstanceCore",
+          ),
+        ],
+      });
+      const sg = new ec2.SecurityGroup(this, `${idPrefix}Ec2Sg`, {
+        vpc,
+        allowAllOutbound: true,
+      });
+
+      if (ingressPeer && listenerPort) {
+        sg.addIngressRule(
+          ingressPeer,
+          ec2.Port.tcp(listenerPort),
+          `Allow TGW connectivity tests on port ${listenerPort}`,
+        );
+      }
+
+      const instance = new ec2.Instance(this, `${idPrefix}Ec2Instance`, {
+        vpc,
+        instanceType: ec2.InstanceType.of(
+          ec2.InstanceClass.T4G,
+          ec2.InstanceSize.NANO,
         ),
-      ],
-    });
-    const sg = new ec2.SecurityGroup(this, "Ec2Sg", {
-      vpc,
-      allowAllOutbound: true,
-    });
-    const instance = new ec2.Instance(this, "Ec2Instance", {
-      vpc,
-      instanceType: ec2.InstanceType.of(
-        ec2.InstanceClass.T3,
-        ec2.InstanceSize.NANO,
-      ),
-      machineImage: ec2.MachineImage.latestAmazonLinux2023(),
-      securityGroup: sg,
-      role: ec2Role,
-      vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_ISOLATED },
-    });
-    instance.addUserData("#!/bin/bash", "yum install -y nc");
+        machineImage: ec2.MachineImage.latestAmazonLinux2023({
+          cpuType: ec2.AmazonLinuxCpuType.ARM_64,
+        }),
+        securityGroup: sg,
+        role: ec2Role,
+        vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_ISOLATED },
+      });
+
+      instance.addUserData("#!/bin/bash", "dnf install -y nmap-ncat");
+
+      if (listenerPort) {
+        instance.addUserData(
+          "cat >/etc/systemd/system/tgw-test-listener.service <<'EOF'",
+          "[Unit]",
+          "Description=TGW connectivity test listener",
+          "After=network-online.target",
+          "",
+          "[Service]",
+          "Type=simple",
+          `ExecStart=/usr/bin/ncat -lk -p ${listenerPort} --keep-open --exec '/usr/bin/printf "tgw-ok\\n"'`,
+          "Restart=always",
+          "",
+          "[Install]",
+          "WantedBy=multi-user.target",
+          "EOF",
+          "systemctl daemon-reload",
+          "systemctl enable --now tgw-test-listener.service",
+        );
+      }
+
+      new cdk.CfnOutput(this, `${idPrefix}InstanceId`, {
+        value: instance.instanceId,
+      });
+      new cdk.CfnOutput(this, `${idPrefix}PrivateIp`, {
+        value: instance.instancePrivateIp,
+      });
+
+      return instance;
+    };
+
+    if (cfg.envName === "shared") {
+      createTestInstance("Shared");
+    }
+
+    if (cfg.envName === "dev") {
+      createTestInstance("Dev", ec2.Peer.ipv4(sharedVpcCidr), 8080);
+    }
 
     if (cfg.envName === "shared") {
       const tgw = new ec2.CfnTransitGateway(this, "TGW", {
@@ -152,6 +216,31 @@ export class NetworkStack extends cdk.Stack {
 
       new cdk.CfnOutput(this, "TGWId", {
         value: tgw.ref,
+      });
+    }
+
+    if (cfg.envName === "dev" && sharedTgwId && cfg.tgwConfig) {
+      const devAttachment = new ec2.CfnTransitGatewayAttachment(
+        this,
+        "DevVpcAttachment",
+        {
+          transitGatewayId: sharedTgwId,
+          vpcId: this.vpc.vpcId,
+          subnetIds: vpc.isolatedSubnets.map((s) => s.subnetId),
+          tags: [{ key: "Name", value: "dev-VPC-Attachment" }],
+        },
+      );
+
+      const routeTable = vpc.isolatedSubnets[0].routeTable.routeTableId;
+
+      new ec2.CfnRoute(this, "DevToSharedRoute", {
+        routeTableId: routeTable,
+        destinationCidrBlock: cfg.tgwConfig.destinationVPCidr,
+        transitGatewayId: sharedTgwId,
+      }).addDependency(devAttachment);
+
+      new cdk.CfnOutput(this, "AttachedSharedTgwId", {
+        value: sharedTgwId,
       });
     }
   }

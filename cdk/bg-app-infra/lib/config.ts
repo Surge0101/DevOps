@@ -16,7 +16,11 @@ export interface EnvConfig {
 
   rdsStorageSize: number;
   vpcCidr: string;
-  tgwConfig?: { destinationVPCidr: string; targetVPCcidr: string };
+  tgwConfig?: {
+    destinationVPCidr: string;
+    targetVPCcidr: string;
+    transitGatewayId?: string;
+  };
 }
 export const ENV_CONFIG: Record<AppEnv, EnvConfig> = {
   shared: {
@@ -44,6 +48,11 @@ export const ENV_CONFIG: Record<AppEnv, EnvConfig> = {
     rdsStorageSize: 100,
 
     vpcCidr: vpcCidrConfig.dev,
+    tgwConfig: {
+      destinationVPCidr: vpcCidrConfig.shared,
+      targetVPCcidr: vpcCidrConfig.dev,
+      transitGatewayId: "tgw-03bed3d5a309c899f",
+    },
   },
   prod: {
     envName: "prod",
