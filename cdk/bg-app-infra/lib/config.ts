@@ -27,6 +27,9 @@ export interface EnvConfig {
   region: string;
   profile: string; // SSO profile name
 
+  // ECS
+  ecsAppPort: number;
+
   vpcCidr: string;
   tgwConfig?: {
     destinationVPCidr: string;
@@ -45,6 +48,7 @@ export const ENV_CONFIG: Record<AppEnv, EnvConfig> = {
     account: "084847996201",
     region: "ap-southeast-2",
     profile: "bg-shared",
+    ecsAppPort: 0,
 
     vpcCidr: vpcCidrConfig.shared,
     tgwConfig: {
@@ -61,6 +65,7 @@ export const ENV_CONFIG: Record<AppEnv, EnvConfig> = {
     account: "611411463255",
     region: "ap-southeast-2",
     profile: "bg-dev",
+    ecsAppPort: 8080,
 
     vpcCidr: vpcCidrConfig.dev,
     tgwConfig: {
@@ -87,6 +92,8 @@ export const ENV_CONFIG: Record<AppEnv, EnvConfig> = {
     account: "",
     region: "",
     profile: "",
+
+    ecsAppPort: 8080,
 
     vpcCidr: vpcCidrConfig.prod,
     // rdsConfig added here when prod RDS is ready to provision
