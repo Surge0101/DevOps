@@ -1,5 +1,6 @@
 import * as cdk from "aws-cdk-lib/core";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
+import * as kms from "aws-cdk-lib/aws-kms";
 import * as rds from "aws-cdk-lib/aws-rds";
 import { Construct } from "constructs";
 import { EnvConfig } from "../config";
@@ -19,6 +20,17 @@ export class RDSStack extends cdk.Stack {
 
     const { cfg, vpc, ecsSecurityGroup } = props;
     const rdsCfg = cfg.rdsConfig!;
+
+    // ── KMS Key ────────────────────────────────────────────────────────────────
+    const dbKey = new kms.Key(this, "DbKey", {
+      description: `${cfg.envName} RDS storage encryption key`,
+      enableKeyRotation: true,
+      removalPolicy: rdsCfg.removalPolicy,
+    });
+    new cdk.CfnOutput(this, "DbKeyArn", {
+      value: dbKey.keyArn,
+      description: "KMS key ARN for RDS storage encryption",
+    });
 
     // ── Security Group ─────────────────────────────────────────────────────────
     // Prefer allowing only the ECS SG (principle of least privilege).
@@ -68,6 +80,7 @@ export class RDSStack extends cdk.Stack {
       allocatedStorage: rdsCfg.allocatedStorage,
       storageType: rds.StorageType.GP3,
       storageEncrypted: true,
+      storageEncryptionKey: dbKey,
 
       // Credentials auto-generated and stored in Secrets Manager.
       // The SecretsManager VPC endpoint in NetworkStack handles private access.
