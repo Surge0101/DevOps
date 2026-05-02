@@ -1,0 +1,15 @@
+{
+  "hosted-zone:account=448658736684:domainName=brandon-gm.com:region=us-east-1": {
+    "Id": "/hostedzone/Z03096971LLPUMEKRTSRS",
+    "Name": "brandon-gm.com."
+  },
+  "hosted-zone:account=448658736684:domainName=brandon-gm.com:region=ap-southeast-2": {
+    "Id": "/hostedzone/Z03096971LLPUMEKRTSRS",
+    "Name": "brandon-gm.com."
+  },
+  "availability-zones:account=448658736684:region=ap-southeast-2": [
+    "ap-southeast-2a",
+    "ap-southeast-2b",
+    "ap-southeast-2c"
+  ]
+}
