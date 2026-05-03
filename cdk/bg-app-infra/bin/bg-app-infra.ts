@@ -2,6 +2,7 @@
 import * as cdk from "aws-cdk-lib/core";
 import { NetworkStack } from "../lib/stacks/network-stack";
 import { RDSStack } from "../lib/stacks/RDS-stack";
+import { VpnStack } from "../lib/stacks/vpn-stack";
 import { AppEnv, ENV_CONFIG } from "../lib/config";
 
 const app = new cdk.App();
@@ -28,6 +29,20 @@ if (deployRds && cfg.envName === "dev" && cfg.rdsConfig) {
     env,
     cfg,
     vpc: net.vpc,
-    // ecsSecurityGroup: ecs.service.connections.securityGroups[0],  // wire in once ECS stack exists
+    rdsSecurityGroup: net.rdsSg,
+  });
+}
+
+// ── VPN Stack — optional, requires vpnConfig populated in config.ts ────────
+// 1. Run easy-rsa cert setup and import certs to ACM (see README or vpn-stack.ts)
+// 2. Uncomment vpnConfig in config.ts and fill in the ACM ARNs
+// 3. Deploy with: cdk deploy -c env=prod -c deployVpn=true PROD-VpnStack
+const deployVpn = app.node.tryGetContext("deployVpn") === "true";
+if (deployVpn && cfg.vpnConfig) {
+  new VpnStack(app, `${prefix}-VpnStack`, {
+    env,
+    cfg,
+    vpc: net.vpc,
+    rdsSg: net.rdsSg,
   });
 }

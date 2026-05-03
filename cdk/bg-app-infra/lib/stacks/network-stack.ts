@@ -98,7 +98,8 @@ export class NetworkStack extends cdk.Stack {
     this.vpc = new ec2.Vpc(this, `${cfg.envName}Vpc`, {
       vpcName: `${cfg.envName}-vpc`,
       ipAddresses: ec2.IpAddresses.cidr(cfg.vpcCidr),
-      maxAzs: 1,
+      //move into config for reuseablity
+      maxAzs: 2, // Required for RDS subnet group redundancy
       natGateways: 0,
       subnetConfiguration: [
         { subnetType: ec2.SubnetType.PUBLIC, name: "Public", cidrMask: 24 },
@@ -206,6 +207,19 @@ export class NetworkStack extends cdk.Stack {
         ec2.Peer.securityGroupId(this.albSg.securityGroupId),
         ec2.Port.tcp(cfg.ecsAppPort),
         "From ALB",
+      );
+
+      this.rdsSg = new ec2.SecurityGroup(this, "RdsSg", {
+        vpc: this.vpc,
+        securityGroupName: `${cfg.envName}-rds-sg`,
+        description: "RDS PostgreSQL - inbound 5432 from ECS only",
+        allowAllOutbound: false,
+      });
+
+      this.rdsSg.addIngressRule(
+        ec2.Peer.securityGroupId(this.ecsSg.securityGroupId),
+        ec2.Port.tcp(5432),
+        "PostgreSQL from ECS",
       );
 
       //createTestInstance(this, vpc, "Dev", ec2.Peer.ipv4(sharedVpcCidr), 8080);
