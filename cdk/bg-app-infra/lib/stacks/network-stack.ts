@@ -175,10 +175,37 @@ export class NetworkStack extends cdk.Stack {
     if (cfg.envName === "shared") {
       createTestInstance(this, vpc, "Shared");
     } else {
-      // S3 VPC Gateway Endpoint - ECR uese S3 for image layers (free)
+      // S3 VPC Gateway Endpoint - ECR uses S3 for image layers (free)
       vpc.addGatewayEndpoint("S3Endpoint", {
         service: ec2.GatewayVpcEndpointAwsService.S3,
         subnets: [{ subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS }],
+      });
+
+      // Interface endpoints — required for Fargate with no NAT gateway
+      const endpointSg = new ec2.SecurityGroup(this, "EndpointSg", {
+        vpc,
+        description: "Allow HTTPS from VPC for interface endpoints",
+        allowAllOutbound: false,
+      });
+      endpointSg.addIngressRule(
+        ec2.Peer.ipv4(cfg.vpcCidr),
+        ec2.Port.tcp(443),
+        "HTTPS from VPC",
+      );
+
+      [
+        { id: "EcrApiEndpoint",         service: ec2.InterfaceVpcEndpointAwsService.ECR },
+        { id: "EcrDkrEndpoint",         service: ec2.InterfaceVpcEndpointAwsService.ECR_DOCKER },
+        { id: "SecretsManagerEndpoint", service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER },
+        { id: "CloudWatchLogsEndpoint", service: ec2.InterfaceVpcEndpointAwsService.CLOUDWATCH_LOGS },
+        { id: "KmsEndpoint",            service: ec2.InterfaceVpcEndpointAwsService.KMS },
+        { id: "SsmMessagesEndpoint",    service: ec2.InterfaceVpcEndpointAwsService.SSM_MESSAGES },
+      ].forEach(({ id, service }) => {
+        vpc.addInterfaceEndpoint(id, {
+          service,
+          securityGroups: [endpointSg],
+          subnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
+        });
       });
 
       // Security groups: ALB, ECS, RDS
