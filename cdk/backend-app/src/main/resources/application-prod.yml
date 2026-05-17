@@ -1,0 +1,16 @@
+spring:
+  config:
+    import: "aws-secretsmanager:/prod/rds/postgres/credentials"
+  datasource:
+    url: jdbc:postgresql://${host}:${port:5432}/${dbname:appdb}
+    username: ${username}
+    password: ${password}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+
+  cloud:
+    aws:
+      region:
+        static: ap-southeast-2
