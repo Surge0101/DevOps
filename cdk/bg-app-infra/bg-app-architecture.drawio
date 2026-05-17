@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" version="21.1.2">
+  <diagram id="bg-app-arch" name="bg-app Architecture">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1400" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- ── PAGE BACKGROUND ──────────────────────────────────────────────── -->
+        <mxCell id="bg" value="" style="whiteSpace=wrap;html=1;fillColor=#F8F9FA;strokeColor=none;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="0" y="0" width="1700" height="1400" as="geometry"/>
+        </mxCell>
+
+        <!-- ── TITLE ─────────────────────────────────────────────────────────── -->
+        <mxCell id="title" value="bg-app AWS Architecture — dev environment (ap-southeast-2)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=20;fontStyle=1;fontColor=#1F4E79;" vertex="1" parent="1">
+          <mxGeometry x="100" y="15" width="1100" height="35" as="geometry"/>
+        </mxCell>
+
+        <!-- ── INTERNET ───────────────────────────────────────────────────────── -->
+        <mxCell id="internet" value="&lt;b&gt;Internet&lt;/b&gt;&lt;br&gt;User Traffic" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="620" y="65" width="200" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- ── ROUTE 53 ────────────────────────────────────────────────────────── -->
+        <mxCell id="route53" value="&lt;b&gt;Route 53&lt;/b&gt;&lt;br&gt;Hosted Zone: brandon-gm.com  (Z03096971LLPUMEKRTSRS)&lt;br&gt;A: infra-test.brandon-gm.com → ALB (Alias)&lt;br&gt;CNAME: infralogin.brandon-gm.com → Cognito CloudFront&lt;br&gt;A root: brandon-gm.com → 192.0.2.1 (dummy, required by Cognito)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e9d5ff;strokeColor=#7c3aed;fontColor=#4C1D95;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="410" y="140" width="620" height="75" as="geometry"/>
+        </mxCell>
+
+        <!-- ── ACM CERT (ALB, ap-southeast-2) ─────────────────────────────────── -->
+        <mxCell id="acm-alb" value="&lt;b&gt;ACM Certificate&lt;/b&gt;&lt;br&gt;ap-southeast-2 (AlbCert)&lt;br&gt;infra-test.brandon-gm.com&lt;br&gt;DNS Validation via Route53" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ede9fe;strokeColor=#7c3aed;fontColor=#4C1D95;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1095" y="145" width="210" height="70" as="geometry"/>
+        </mxCell>
+
+        <!-- ══════════════════ DEV VPC OUTER CONTAINER ═════════════════════════ -->
+        <mxCell id="vpc" value="&lt;b style=&quot;font-size:12px;color:#2E75B6;&quot;&gt;dev-vpc  10.1.0.0/16  |  ap-southeast-2  |  Account: 611411463255&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#2E75B6;strokeWidth=2;dashed=1;dashPattern=8 4;verticalAlign=top;align=left;spacingLeft=12;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="40" y="235" width="1210" height="820" as="geometry"/>
+        </mxCell>
+
+        <!-- ── PUBLIC SUBNETS ──────────────────────────────────────────────────── -->
+        <mxCell id="pub-subnets" value="&lt;b style=&quot;color:#2E7D32;&quot;&gt;Public Subnets  (10.1.0.0/24 – AZ-a  |  10.1.1.0/24 – AZ-b)&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#43a047;strokeWidth=1.5;dashed=1;dashPattern=5 3;verticalAlign=top;align=left;spacingLeft=10;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="258" width="1165" height="155" as="geometry"/>
+        </mxCell>
+
+        <!-- ── ALB ─────────────────────────────────────────────────────────────── -->
+        <mxCell id="alb" value="&lt;b&gt;Application Load Balancer&lt;/b&gt;&lt;br&gt;infra-test-alb  |  Internet-facing&lt;br&gt;HTTP :80 → Redirect to HTTPS&lt;br&gt;HTTPS :443 + Cognito Auth Action&lt;br&gt;&lt;i&gt;/actuator/health  |  SG: dev-alb-sg&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#0D47A1;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="82" y="280" width="340" height="110" as="geometry"/>
+        </mxCell>
+
+        <!-- ── INTERNET GATEWAY ────────────────────────────────────────────────── -->
+        <mxCell id="igw" value="&lt;b&gt;Internet Gateway&lt;/b&gt;&lt;br&gt;Attached to VPC&lt;br&gt;Route: 0.0.0.0/0 → IGW&lt;br&gt;Public subnets only&lt;br&gt;&lt;i&gt;Note: natGateways = 0 (cost-optimised)&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#388e3c;fontColor=#1B5E20;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="490" y="280" width="280" height="110" as="geometry"/>
+        </mxCell>
+
+        <!-- ── PRIVATE APP SUBNETS ─────────────────────────────────────────────── -->
+        <mxCell id="priv-app-subnets" value="&lt;b style=&quot;color:#BF360C;&quot;&gt;Private App Subnets  (10.1.2.0/24 – AZ-a  |  10.1.3.0/24 – AZ-b)  |  Egress via VPC Endpoints only (no NAT Gateway)&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#e65100;strokeWidth=1.5;dashed=1;dashPattern=5 3;verticalAlign=top;align=left;spacingLeft=10;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="423" width="1165" height="205" as="geometry"/>
+        </mxCell>
+
+        <!-- ── ECS CLUSTER ─────────────────────────────────────────────────────── -->
+        <mxCell id="ecs-cluster" value="&lt;b&gt;ECS Fargate Cluster — dev-test-cluster&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe0b2;strokeColor=#e65100;fontColor=#BF360C;fontSize=11;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="82" y="447" width="490" height="168" as="geometry"/>
+        </mxCell>
+
+        <!-- ── FARGATE TASK ─────────────────────────────────────────────────────── -->
+        <mxCell id="fargate" value="&lt;b&gt;Fargate Task  (dev-spring-app-service)&lt;/b&gt;&lt;br&gt;Spring Boot  |  Java 21  |  Port :8080&lt;br&gt;CPU: 256  |  Memory: 512 MB&lt;br&gt;Image: dev-spring-app:latest (ECR)&lt;br&gt;SG: dev-ecs-sg  |  assignPublicIp: false&lt;br&gt;ECS Exec: ON  |  Circuit Breaker: enabled (rollback: false)&lt;br&gt;Env: SPRING_PROFILES_ACTIVE=dev" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcc80;strokeColor=#f57c00;fontColor=#E65100;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="102" y="492" width="450" height="105" as="geometry"/>
+        </mxCell>
+
+        <!-- ── VPC ENDPOINTS GROUP ─────────────────────────────────────────────── -->
+        <mxCell id="vpc-endpoints" value="&lt;b&gt;VPC Endpoints  (Private Connectivity — no NAT required)&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#2e7d32;fontColor=#1B5E20;fontSize=11;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="625" y="447" width="578" height="168" as="geometry"/>
+        </mxCell>
+
+        <!-- Endpoint items — row 1 -->
+        <mxCell id="ep-ecr-api" value="&lt;b&gt;ECR API&lt;/b&gt;&lt;br&gt;Image auth" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#388e3c;fontColor=#1B5E20;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="645" y="487" width="125" height="42" as="geometry"/>
+        </mxCell>
+        <mxCell id="ep-ecr-dkr" value="&lt;b&gt;ECR Docker&lt;/b&gt;&lt;br&gt;Image pull" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#388e3c;fontColor=#1B5E20;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="785" y="487" width="125" height="42" as="geometry"/>
+        </mxCell>
+        <mxCell id="ep-cw" value="&lt;b&gt;CloudWatch Logs&lt;/b&gt;&lt;br&gt;Log streaming" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#388e3c;fontColor=#1B5E20;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="925" y="487" width="145" height="42" as="geometry"/>
+        </mxCell>
+
+        <!-- Endpoint items — row 2 -->
+        <mxCell id="ep-secrets" value="&lt;b&gt;Secrets Manager&lt;/b&gt;&lt;br&gt;DB credentials" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#388e3c;fontColor=#1B5E20;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="645" y="541" width="140" height="42" as="geometry"/>
+        </mxCell>
+        <mxCell id="ep-kms" value="&lt;b&gt;KMS&lt;/b&gt;&lt;br&gt;Key access" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#388e3c;fontColor=#1B5E20;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="800" y="541" width="100" height="42" as="geometry"/>
+        </mxCell>
+        <mxCell id="ep-ssm" value="&lt;b&gt;SSM Messages&lt;/b&gt;&lt;br&gt;ECS Exec" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#388e3c;fontColor=#1B5E20;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="915" y="541" width="145" height="42" as="geometry"/>
+        </mxCell>
+
+        <!-- Endpoint items — row 3 (S3 Gateway) -->
+        <mxCell id="ep-s3" value="&lt;b&gt;S3 Gateway Endpoint&lt;/b&gt;  (ECR image layers — free)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#388e3c;fontColor=#1B5E20;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="645" y="595" width="340" height="28" as="geometry"/>
+        </mxCell>
+
+        <!-- ── PRIVATE DATA SUBNETS ────────────────────────────────────────────── -->
+        <mxCell id="priv-data-subnets" value="&lt;b style=&quot;color:#880E4F;&quot;&gt;Private Data Subnets  (10.1.4.0/24 – AZ-a  |  10.1.5.0/24 – AZ-b)  |  No internet route (isolated)&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fce4ec;strokeColor=#880e4f;strokeWidth=1.5;dashed=1;dashPattern=5 3;verticalAlign=top;align=left;spacingLeft=10;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="638" width="1165" height="215" as="geometry"/>
+        </mxCell>
+
+        <!-- ── RDS POSTGRESQL (optional) ──────────────────────────────────────── -->
+        <mxCell id="rds" value="&lt;b&gt;RDS PostgreSQL Primary  ★ optional&lt;/b&gt;&lt;br&gt;&lt;i&gt;cdk deploy -c deployRds=true&lt;/i&gt;&lt;br&gt;PostgreSQL 16  |  db.t4g.micro&lt;br&gt;Storage: 100 GB GP3  |  Multi-AZ: false&lt;br&gt;DB: appdb  |  Encrypted: KMS CMK&lt;br&gt;Backup: 1 day  |  Deletion protection: off&lt;br&gt;Removal policy: DESTROY&lt;br&gt;Creds: Secrets Manager&lt;br&gt;SG: dev-rds-sg  (port 5432 from ECS only)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8bbd0;strokeColor=#c2185b;fontColor=#880E4F;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="82" y="662" width="320" height="175" as="geometry"/>
+        </mxCell>
+
+        <!-- ── KMS KEY ──────────────────────────────────────────────────────────── -->
+        <mxCell id="kms" value="&lt;b&gt;KMS CMK&lt;/b&gt;&lt;br&gt;dev-rds-key&lt;br&gt;Key rotation: enabled&lt;br&gt;Encrypts RDS storage&lt;br&gt;Removal policy: DESTROY" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1bee7;strokeColor=#6a1b9a;fontColor=#4A148C;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="450" y="662" width="190" height="110" as="geometry"/>
+        </mxCell>
+
+        <!-- ── SECRETS MANAGER (data layer) ───────────────────────────────────── -->
+        <mxCell id="secrets-data" value="&lt;b&gt;Secrets Manager&lt;/b&gt;&lt;br&gt;/dev/rds/postgres/credentials&lt;br&gt;username: postgres&lt;br&gt;password: auto-generated&lt;br&gt;host / port / dbname: appdb" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1c4e9;strokeColor=#4527a0;fontColor=#311B92;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="690" y="662" width="210" height="110" as="geometry"/>
+        </mxCell>
+
+        <!-- ── IAM ROLES NOTE ──────────────────────────────────────────────────── -->
+        <mxCell id="iam-roles" value="&lt;b&gt;IAM Roles&lt;/b&gt;&lt;br&gt;TaskExecutionRole: AmazonECSTaskExecutionRolePolicy&lt;br&gt;TaskRole: ssmmessages:* (ECS Exec)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#f9a825;fontColor=#E65100;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="950" y="662" width="255" height="75" as="geometry"/>
+        </mxCell>
+
+        <!-- ═════════════════════ OUTSIDE VPC (right column) ═══════════════════ -->
+
+        <!-- ── COGNITO USER POOL ────────────────────────────────────────────────── -->
+        <mxCell id="cognito" value="&lt;b&gt;Cognito User Pool&lt;/b&gt;&lt;br&gt;infra-test-users&lt;br&gt;Sign-in: email  |  Self-signup: disabled&lt;br&gt;Password: min 12 + upper/lower/digit/symbol&lt;br&gt;Custom domain: infralogin.brandon-gm.com&lt;br&gt;OAuth: Authorization Code Grant&lt;br&gt;Callback: /oauth2/idpresponse&lt;br&gt;Logout: /logout&lt;br&gt;Cert: GlobalStack ACM (us-east-1)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3e5f5;strokeColor=#7b1fa2;fontColor=#4A148C;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="423" width="285" height="185" as="geometry"/>
+        </mxCell>
+
+        <!-- ── ECR REPOSITORY ───────────────────────────────────────────────────── -->
+        <mxCell id="ecr" value="&lt;b&gt;ECR Repository&lt;/b&gt;&lt;br&gt;dev-spring-app&lt;br&gt;imageScanOnPush: true&lt;br&gt;Access via VPC endpoints" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b2dfdb;strokeColor=#00695c;fontColor=#004D40;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="628" width="285" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- ── CLOUDWATCH LOG GROUP ─────────────────────────────────────────────── -->
+        <mxCell id="cw-logs" value="&lt;b&gt;CloudWatch Log Group&lt;/b&gt;&lt;br&gt;/dev/ecs/test&lt;br&gt;Retention: 3 days  |  Removal: DESTROY" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e3f2fd;strokeColor=#1565c0;fontColor=#0D47A1;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="728" width="285" height="70" as="geometry"/>
+        </mxCell>
+
+        <!-- ═══════════════════ BOTTOM: GLOBAL STACK ════════════════════════════ -->
+        <mxCell id="globalstack" value="&lt;b&gt;GlobalStack — Root Account: 448658736684  |  us-east-1&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:10px;&quot;&gt;Deployed first; ACM cert ARN passed to DNSStack via context&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e3f2fd;strokeColor=#1565c0;strokeWidth=1.5;dashed=1;dashPattern=6 4;verticalAlign=top;align=left;spacingLeft=10;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1088" width="620" height="135" as="geometry"/>
+        </mxCell>
+        <mxCell id="acm-cf" value="&lt;b&gt;ACM Certificate (us-east-1)&lt;/b&gt;&lt;br&gt;infra-test.brandon-gm.com&lt;br&gt;CloudFrontCert — for future CloudFront" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ede9fe;strokeColor=#7c3aed;fontColor=#4C1D95;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1125" width="270" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="acm-cognito-cert" value="&lt;b&gt;ACM Certificate (us-east-1)&lt;/b&gt;&lt;br&gt;infralogin.brandon-gm.com&lt;br&gt;CognitoCustomDomainCert — required by Cognito" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ede9fe;strokeColor=#7c3aed;fontColor=#4C1D95;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="350" y="1125" width="295" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- ═══════════════ BOTTOM: SHARED ACCOUNT / TRANSIT GATEWAY ════════════ -->
+        <mxCell id="shared-acct" value="&lt;b&gt;Shared Account: 084847996201  |  ap-southeast-2&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:10px;&quot;&gt;Transit Gateway shared via RAM; Dev VPC routes 10.0.0.0/16 → TGW&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8eaf6;strokeColor=#3949ab;strokeWidth=1.5;dashed=1;dashPattern=6 4;verticalAlign=top;align=left;spacingLeft=10;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="710" y="1088" width="540" height="135" as="geometry"/>
+        </mxCell>
+        <mxCell id="tgw" value="&lt;b&gt;Transit Gateway&lt;/b&gt;&lt;br&gt;tgw-03bed3d5a309c899f&lt;br&gt;Shared VPC: 10.0.0.0/16&lt;br&gt;RAM shared to org (o-yr7s22wlau)&lt;br&gt;Auto-accept attachments: ON" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c5cae9;strokeColor=#3f51b5;fontColor=#1A237E;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="730" y="1125" width="260" height="88" as="geometry"/>
+        </mxCell>
+
+        <!-- ═══════════════════════════ LEGEND ═══════════════════════════════════ -->
+        <mxCell id="legend-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#bdbdbd;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1250" width="1200" height="75" as="geometry"/>
+        </mxCell>
+        <mxCell id="legend-title" value="&lt;b&gt;Legend&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="55" y="1252" width="60" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="l1" value="Networking / ALB" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="55" y="1277" width="135" height="25" as="geometry"/>
+        </mxCell>
+        <mxCell id="l2" value="Compute (ECS)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe0b2;strokeColor=#e65100;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="205" y="1277" width="120" height="25" as="geometry"/>
+        </mxCell>
+        <mxCell id="l3" value="Database (RDS)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8bbd0;strokeColor=#c2185b;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="340" y="1277" width="120" height="25" as="geometry"/>
+        </mxCell>
+        <mxCell id="l4" value="Security (KMS / Secrets)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1bee7;strokeColor=#6a1b9a;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="475" y="1277" width="160" height="25" as="geometry"/>
+        </mxCell>
+        <mxCell id="l5" value="VPC Endpoints" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#388e3c;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="650" y="1277" width="120" height="25" as="geometry"/>
+        </mxCell>
+        <mxCell id="l6" value="DNS / Cognito / Auth" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e9d5ff;strokeColor=#7c3aed;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="785" y="1277" width="145" height="25" as="geometry"/>
+        </mxCell>
+        <mxCell id="l7" value="ECR / Managed Services" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b2dfdb;strokeColor=#00695c;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="945" y="1277" width="150" height="25" as="geometry"/>
+        </mxCell>
+        <mxCell id="l8" value="Cross-Account / TGW" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c5cae9;strokeColor=#3f51b5;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1110" y="1277" width="115" height="25" as="geometry"/>
+        </mxCell>
+
+        <!-- dashed / solid line legend -->
+        <mxCell id="l-dashed" value="─ ─  Async / config / dependency flow" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontStyle=2;" vertex="1" parent="1">
+          <mxGeometry x="55" y="1257" width="230" height="18" as="geometry"/>
+        </mxCell>
+        <mxCell id="l-solid" value="——  Primary traffic path" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontStyle=2;" vertex="1" parent="1">
+          <mxGeometry x="300" y="1257" width="200" height="18" as="geometry"/>
+        </mxCell>
+
+        <!-- ════════════════════════════ ARROWS ══════════════════════════════════ -->
+
+        <!-- Internet → Route53 -->
+        <mxCell id="arr-int-r53" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=1;strokeColor=#555555;" edge="1" source="internet" target="route53" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Route53 → ALB (A record alias) -->
+        <mxCell id="arr-r53-alb" value="A Alias" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=1;strokeColor=#555555;" edge="1" source="route53" target="alb" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Route53 → Cognito (CNAME after 2nd deploy) -->
+        <mxCell id="arr-r53-cognito" value="CNAME (2nd deploy)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;dashed=1;dashPattern=5 3;endArrow=open;endFill=0;strokeColor=#7c3aed;" edge="1" source="route53" target="cognito" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- ACM cert → ALB (TLS attachment) -->
+        <mxCell id="arr-acm-alb" value="TLS cert attached" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=1;dashPattern=5 3;endArrow=open;endFill=0;strokeColor=#7c3aed;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.3;entryDx=0;entryDy=0;" edge="1" source="acm-alb" target="alb" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- ALB ↔ Cognito (auth action) -->
+        <mxCell id="arr-alb-cognito" value="Cognito Auth Action" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=1;dashPattern=5 3;endArrow=open;endFill=0;startArrow=open;startFill=0;strokeColor=#7b1fa2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="alb" target="cognito" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- ALB → ECS Fargate (traffic forwarding) -->
+        <mxCell id="arr-alb-ecs" value=":8080" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.3;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=1;strokeColor=#1565c0;strokeWidth=2;" edge="1" source="alb" target="fargate" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- ECS → VPC Endpoints -->
+        <mxCell id="arr-ecs-endpoints" value="AWS API calls" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;dashPattern=4 3;endArrow=open;endFill=0;strokeColor=#2e7d32;" edge="1" source="fargate" target="vpc-endpoints" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- ECR → ECS (image pull via endpoints) -->
+        <mxCell id="arr-ecr-ecs" value="Image pull (via ECR endpoints)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.4;entryDx=0;entryDy=0;dashed=1;dashPattern=5 3;endArrow=open;endFill=0;strokeColor=#00695c;" edge="1" source="ecr" target="fargate" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- ECS → CloudWatch Logs (via CW endpoint) -->
+        <mxCell id="arr-ecs-cw" value="Logs" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=1;exitY=0.7;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;dashPattern=4 3;endArrow=open;endFill=0;strokeColor=#1565c0;" edge="1" source="fargate" target="cw-logs" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1150" y="563"/>
+              <mxPoint x="1150" y="763"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ECS → RDS -->
+        <mxCell id="arr-ecs-rds" value=":5432" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=1;strokeColor=#e65100;strokeWidth=2;" edge="1" source="fargate" target="rds" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- RDS → KMS (encryption) -->
+        <mxCell id="arr-rds-kms" value="encrypted by" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=1;exitY=0.4;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;dashPattern=5 3;endArrow=open;endFill=0;strokeColor=#6a1b9a;" edge="1" source="rds" target="kms" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- RDS → Secrets Manager -->
+        <mxCell id="arr-rds-secrets" value="creds stored" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=1;exitY=0.7;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;dashPattern=5 3;endArrow=open;endFill=0;strokeColor=#4527a0;" edge="1" source="rds" target="secrets-data" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- GlobalStack Cognito Cert → Cognito User Pool -->
+        <mxCell id="arr-glb-cognito" value="cert ARN via context" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;dashed=1;dashPattern=5 3;endArrow=open;endFill=0;strokeColor=#7c3aed;" edge="1" source="acm-cognito-cert" target="cognito" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Dev VPC → Transit Gateway (TGW attachment) -->
+        <mxCell id="arr-vpc-tgw" value="TGW Attachment  |  10.1.0.0/16 ↔ 10.0.0.0/16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=1;dashPattern=8 4;endArrow=open;endFill=0;startArrow=open;startFill=0;strokeColor=#3f51b5;strokeWidth=2;exitX=0.55;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="vpc" target="tgw" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

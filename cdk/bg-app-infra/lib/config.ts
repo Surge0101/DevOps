@@ -26,9 +26,14 @@ export interface EnvConfig {
   account: string; // AWS account ID for this environment
   region: string;
   profile: string; // SSO profile name
+  rootAccountId?: string; // only needed for non-organization root accounts, used for cross-account deployments
 
   // ECS
   ecsAppPort: number;
+  ecsCpu: number;
+  ecsMemory: number;
+  ecsMinTasks: number;
+  ecsMaxTasks: number;
 
   vpcCidr: string;
   tgwConfig?: {
@@ -49,6 +54,10 @@ export const ENV_CONFIG: Record<AppEnv, EnvConfig> = {
     region: "ap-southeast-2",
     profile: "bg-shared",
     ecsAppPort: 0,
+    ecsCpu: 256,
+    ecsMemory: 512,
+    ecsMinTasks: 1,
+    ecsMaxTasks: 1,
 
     vpcCidr: vpcCidrConfig.shared,
     tgwConfig: {
@@ -66,6 +75,11 @@ export const ENV_CONFIG: Record<AppEnv, EnvConfig> = {
     region: "ap-southeast-2",
     profile: "bg-dev",
     ecsAppPort: 8080,
+    ecsCpu: 256,
+    ecsMemory: 512,
+    ecsMinTasks: 1,
+    ecsMaxTasks: 2,
+    rootAccountId: "448658736684", // needed for cross-account deployments from dev to shared
 
     vpcCidr: vpcCidrConfig.dev,
     tgwConfig: {
@@ -94,6 +108,10 @@ export const ENV_CONFIG: Record<AppEnv, EnvConfig> = {
     profile: "",
 
     ecsAppPort: 8080,
+    ecsCpu: 512,
+    ecsMemory: 1024,
+    ecsMinTasks: 2,
+    ecsMaxTasks: 10,
 
     vpcCidr: vpcCidrConfig.prod,
     // rdsConfig added here when prod RDS is ready to provision

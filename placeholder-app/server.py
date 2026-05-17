@@ -4,7 +4,7 @@ import os
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        if self.path == "/health":
+        if self.path in ("/health", "/actuator/health"):
             body = json.dumps({"status": "ok", "env": os.getenv("SPRING_PROFILES_ACTIVE", "unknown")}).encode()
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
