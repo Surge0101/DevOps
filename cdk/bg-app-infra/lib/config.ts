@@ -13,8 +13,15 @@ export interface RdsConfig {
   instanceClass: ec2.InstanceClass;
   instanceSize: ec2.InstanceSize;
   allocatedStorage: number; // GB
+  maxAllocatedStorage?: number; // GB, enables auto-scaling when set
+  postgresVersion?: string; // e.g. "16" — defaults to VER_16
+  dbUsername?: string; // defaults to "postgres"
+  databaseName?: string; // defaults to "appdb"
   multiAz: boolean;
   backupRetentionDays: number;
+  backupWindow?: string; // e.g. "02:00-03:00"
+  maintenanceWindow?: string; // e.g. "sun:03:00-sun:04:00"
+  snapshotOnDeploy?: boolean;
   deletionProtection: boolean;
   removalPolicy: cdk.RemovalPolicy;
 }
