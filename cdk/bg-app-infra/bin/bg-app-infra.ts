@@ -5,6 +5,7 @@ import { RDSStack } from "../lib/stacks/RDS-stack";
 import { ECSTestStack } from "../lib/stacks/ECS-Test-Stack";
 import { DnsStack } from "../lib/stacks/DNS-stack";
 import { GlobalStack } from "../lib/stacks/Global-stack";
+import { CicdStack } from "../lib/stacks/cicd-stack";
 import { AppEnv, ENV_CONFIG } from "../lib/config";
 
 const app = new cdk.App();
@@ -69,6 +70,14 @@ new DnsStack(app, `${prefix}-DNSStack`, {
   vpc: net.vpc,
   albSg: net.albSg,
   fargateService: ecsStack.fargateService,
+});
+
+// ── CICD Stack — CodeBuild + CodePipeline watching GitHub → ECR → ECS ────────
+new CicdStack(app, `${prefix}-CicdStack`, {
+  env,
+  cfg,
+  service: ecsStack.fargateService,
+  repo: ecsStack.repo,
 });
 
 // ── Global Stack — management account, opt-in ──────────────────────────────────

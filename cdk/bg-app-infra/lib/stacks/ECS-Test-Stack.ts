@@ -17,6 +17,7 @@ interface ECSTestStackProps extends cdk.StackProps {
 
 export class ECSTestStack extends cdk.Stack {
   public readonly fargateService: ecs.FargateService;
+  public readonly repo: ecr.Repository;
 
   constructor(scope: Construct, id: string, props: ECSTestStackProps) {
     super(scope, id, props);
@@ -24,7 +25,7 @@ export class ECSTestStack extends cdk.Stack {
     const { cfg, vpc, ecsSg } = props;
 
     // ── ECR Repository ─────────────────────────────────────────────────────────
-    const repo = new ecr.Repository(this, "AppRepo", {
+    this.repo = new ecr.Repository(this, "AppRepo", {
       repositoryName: `${cfg.envName}-placeholder-app`,
       imageScanOnPush: true,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -137,7 +138,7 @@ export class ECSTestStack extends cdk.Stack {
     });
 
     new cdk.CfnOutput(this, "DevEcrRepoUri", {
-      value: repo.repositoryUri,
+      value: this.repo.repositoryUri,
       description: "Push your app image here: docker build -t <value>:latest . && docker push <value>:latest",
     });
   }

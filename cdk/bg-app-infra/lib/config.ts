@@ -26,6 +26,12 @@ export interface RdsConfig {
   removalPolicy: cdk.RemovalPolicy;
 }
 
+export interface DnsConfig {
+  domainName: string;    // e.g. "brandon-gm.com"
+  hostedZoneId: string;  // root zone ID (management account), used by GlobalStack NS delegation
+  appSubdomain: string;  // e.g. "api"
+}
+
 export interface EnvConfig {
   envName: AppEnv;
   orgId: string;
@@ -34,6 +40,15 @@ export interface EnvConfig {
   region: string;
   profile: string; // SSO profile name
   rootAccountId?: string; // only needed for non-organization root accounts, used for cross-account deployments
+
+  // CodeStar connection ARN — create once in AWS console, then paste here.
+  // Console path: CodePipeline → Settings → Connections → Create connection (GitHub)
+  githubConnectionArn?: string;
+  githubOwner?: string;   // GitHub org or username
+  githubRepo?: string;    // repository name
+  githubBranch?: string;  // branch to watch
+
+  dnsConfig?: DnsConfig;
 
   // ECS
   ecsAppPort: number;
@@ -81,6 +96,16 @@ export const ENV_CONFIG: Record<AppEnv, EnvConfig> = {
     account: "611411463255",
     region: "ap-southeast-2",
     profile: "bg-dev",
+    // Paste the ARN after creating the connection in AWS console.
+    githubConnectionArn: "arn:aws:codestar-connections:ap-southeast-2:611411463255:connection/REPLACE_ME",
+    githubOwner: "REPLACE_ME",   // your GitHub username or org
+    githubRepo: "REPLACE_ME",    // your GitHub repo name
+    githubBranch: "main",
+    dnsConfig: {
+      domainName: "brandon-gm.com",
+      hostedZoneId: "Z03096971LLPUMEKRTSRS",
+      appSubdomain: "api",
+    },
     ecsAppPort: 8080,
     ecsCpu: 256,
     ecsMemory: 512,
